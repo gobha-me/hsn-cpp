@@ -1,14 +1,36 @@
 #include <catch2/catch_test_macros.hpp>
 
-// https://github.com/catchorg/Catch2/blob/devel/docs/tutorial.md
+namespace hsn::socket {
+  namespace detail {
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netdb.h>
+    #include <sys/uio.h>
 
-unsigned int Factorial(unsigned int number) {
-  return number <= 1 ? number : Factorial(number - 1) * number;
-}
+    template<int SOCKTYPE>
+    class Socket {
+    public:
+      Socket() {
+        m_hints.ai_family = AF_UNSPEC;
+        m_hints.ai_socktype = SOCKTYPE;
+        m_hints.ai_flags = AI_PASSIVE;
+      }
+    private:
+      struct addrinfo m_hints{};
+      struct addrinfo *m_servinfo{nullptr};
+    };
+  }
 
-TEST_CASE("Factorials are computed", "[factorial]") {
-  REQUIRE(Factorial(1) == 1);
-  REQUIRE(Factorial(2) == 2);
-  REQUIRE(Factorial(3) == 6);
-  REQUIRE(Factorial(10) == 3628800);
+  class Stream : public detail::Socket<detail::SOCK_STREAM> {
+  public:
+    Stream() {
+    }
+  private:
+  };
+
+  class Datagram : public detail::Socket<detail::SOCK_DGRAM> {
+  };
+
+  class Raw : public detail::Socket<detail::SOCK_RAW> {
+  };
 }
